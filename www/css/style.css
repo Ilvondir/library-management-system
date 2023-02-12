@@ -1,0 +1,48 @@
+body {
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    background: white;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.container .panel .label {
+    color: black;
+    font-size: 90%;
+}
+
+.container .panel .btn {
+    width: 40%;
+}
+
+@media screen and (orientation: landscape) {
+    
+    .container .panel {
+        padding: 2vw;
+        background-color: #EEEEEE;
+        border-radius: 2vw;
+        border: 0.2vw solid #DDDDDD;
+        width: 30vw;
+    }
+
+}
+
+@media screen and (orientation: portrait) {
+    
+    .container .panel {
+        padding: 5vw;
+        box-sizing: border-box;
+        background-color: #EEEEEE;
+        border-radius: 5vw;
+        border: 0.2vw solid #DDDDDD;
+        width: 100vw;
+    }
+    
+}
