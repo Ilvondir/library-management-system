@@ -18,6 +18,10 @@ body {
     font-size: 90%;
 }
 
+.container .panel .btn {
+    width: 40%;
+}
+
 @media screen and (orientation: landscape) {
     
     .container .panel {
