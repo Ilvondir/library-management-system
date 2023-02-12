@@ -27,6 +27,10 @@ body {
     width: 40%;
 }
 
+.container .panel p {
+    margin: 10px 0;
+}
+
 @media screen and (orientation: landscape) {
     
     .container .panel {
