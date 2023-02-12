@@ -10,7 +10,7 @@ server <- function(input, output, session) {
   loginPanel <- fluidPage( includeHTML("www/loginPanel.html") )
   
   
-  output$UI <- renderUI(loginPanel)
+  output$page <- renderUI(loginPanel)
 }
 
 # Shiny App ----
