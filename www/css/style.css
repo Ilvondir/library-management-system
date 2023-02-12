@@ -13,6 +13,11 @@ body {
     height: 100vh;
 }
 
+.container .panel h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
 .container .panel .label {
     color: black;
     font-size: 90%;
