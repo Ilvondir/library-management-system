@@ -2,6 +2,7 @@
 library(shiny)
 library(tidyverse)
 library(shinyjs)
+library(shinythemes)
 
 # Data initialization ----
 accounts <- readRDS("datasets/accounts.rds")
@@ -12,20 +13,11 @@ ui <- uiOutput("page")
 
 # Server ----
 server <- function(input, output, session) {
-  ## Pages ----
-  
-  ### Login panel ----
-  loginPanel <- fluidPage( useShinyjs(), includeHTML("www/loginPanel.html") )
-  
-  ### Navbar page ----
-  
-  
-  ### UI setting ----
-  output$page <- renderUI(loginPanel)
-  
-  
+
   ## Functions ----
   ### Login function ----
+  logged <- reactiveValues(role="")
+  
   observeEvent(input$loginButton, {
     login <- input$login
     password <- input$password
@@ -69,14 +61,52 @@ server <- function(input, output, session) {
           updateTextInput(session, "password", value="")
           html("result", "")
           
+          observe( logged$role <- role )
+          
           showModal(modalDialog(
             title = "Login was successful!",
             paste0("Hello!\nYou have logged in as ", role, ".")
           ))
+          
+          output$page <- mainPanel
         }
       }
     }
   })
+  
+  ## Pages ----
+  ### Login panel ----
+  loginPanel <- fluidPage( useShinyjs(), includeHTML("www/loginPanel.html") )
+  
+  ### Navbar page ----
+  mainPanel <- renderUI({
+    navbarPage(
+      title = "Library",
+      theme = shinytheme("flatly"),
+      
+      #### Catalog panel ----
+      tabPanel(
+        title = "Catalog"
+      ),
+      
+      if (logged$role=="Administrator" | logged$role=="Librarian") {
+        ### Rentals panel ----
+        tabPanel(
+          title = "Rentals"
+        )
+      },
+      
+      if (logged$role=="Administrator") {
+        #### Librarians panel ----
+        tabPanel(
+          title = "Librarians"
+        )
+      }
+    )
+  })
+  
+  ### UI setting ----
+  output$page <- renderUI(loginPanel)
 }
 
 # Shiny App ----
