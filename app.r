@@ -96,12 +96,19 @@ server <- function(input, output, session) {
         )
       },
       
+      if (logged$role=="Administrator" | logged$role=="Librarian") {
+        #### Users panel ----
+        tabPanel(
+          title = "Users"
+        )
+      },
+      
       if (logged$role=="Administrator") {
         #### Librarians panel ----
         tabPanel(
           title = "Librarians"
         )
-      }
+      },
     )
   })
   
