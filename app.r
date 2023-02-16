@@ -83,6 +83,9 @@ server <- function(input, output, session) {
     navbarPage(
       title = "Library",
       theme = shinytheme("flatly"),
+      tags$head(
+        tags$link(rel = "stylesheet", type = "text/css", href = "css/navbar.css")
+      ),
       
       #### Catalog panel ----
       tabPanel(
@@ -109,6 +112,9 @@ server <- function(input, output, session) {
           title = "Librarians"
         )
       },
+      
+      tags$script(HTML("var header = $('.navbar> .container-fluid');
+                       header.append('<div style=\"float:right\"><button style=\"margin: 7px\" class=\"action-button logoutButton btn btn-danger\">Logout</button></div>');"))
     )
   })
   
