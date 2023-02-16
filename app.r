@@ -3,6 +3,7 @@ library(shiny)
 library(tidyverse)
 library(shinyjs)
 library(shinythemes)
+library(shinyWidgets)
 
 # Data initialization ----
 accounts <- readRDS("datasets/accounts.rds")
@@ -63,10 +64,15 @@ server <- function(input, output, session) {
           
           observe( logged$role <- role )
           
-          showModal(modalDialog(
+          confirmSweetAlert(
+            session = session,
+            inputId = "info",
             title = "Login was successful!",
-            paste0("Hello!\nYou have logged in as ", role, ".")
-          ))
+            text = paste0("Hello!\nYou have logged in as ", role, "."),
+            type = "success",
+            showCloseButton = F,
+            btn_labels = c("Close", "Ok!")
+          )
           
           output$page <- mainPanel
         }
@@ -74,8 +80,27 @@ server <- function(input, output, session) {
     }
   })
   
+  ### Logout functions ----
+  observeEvent(input$logoutButton, {
+    confirmSweetAlert(
+      session = session,
+      inputId = "confirm",
+      title = "Confirm your choice",
+      text = "Do you really want to log out?",
+      type = "warning",
+      showCancelButton = F
+    )
+  })
+  
+  observeEvent(input$confirm, {
+    if (input$confirm) {
+      observe( logged$role <- "" )
+      output$page <- renderUI(loginPanel)
+    }
+  })
+  
   ## Pages ----
-  ### Login panel ----
+  ### Login page ----
   loginPanel <- fluidPage( useShinyjs(), includeHTML("www/loginPanel.html") )
   
   ### Navbar page ----
@@ -113,12 +138,11 @@ server <- function(input, output, session) {
         )
       },
       
-      tags$script(HTML("var header = $('.navbar> .container-fluid');
-                       header.append('<div style=\"float:right\"><button style=\"margin: 7px\" class=\"action-button logoutButton btn btn-danger\">Logout</button></div>');"))
+      tags$script(HTML(includeText("www/js/logoutButton.js")))
     )
   })
   
-  ### UI setting ----
+  ### Starting UI setting ----
   output$page <- renderUI(loginPanel)
 }
 
