@@ -3,6 +3,7 @@ library(shiny)
 library(tidyverse)
 library(shinyjs)
 library(shinythemes)
+library(DT)
 library(shinyWidgets)
 
 # Data initialization ----
@@ -99,6 +100,15 @@ server <- function(input, output, session) {
     }
   })
   
+  ### Books data table----
+  output$table <- renderDT({
+    datatable(books,
+              options = list(scrollY="400px"),
+              rownames=F,
+              selection="single")
+              
+  })
+  
   ## Pages ----
   ### Login page ----
   loginPanel <- fluidPage( useShinyjs(), includeHTML("www/loginPanel.html") )
@@ -108,31 +118,37 @@ server <- function(input, output, session) {
     navbarPage(
       title = "Library",
       theme = shinytheme("flatly"),
+      
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "css/navbar.css")
       ),
       
       #### Catalog panel ----
       tabPanel(
-        title = "Catalog"
+        title = "Catalog",
+        dataTableOutput("table")
       ),
       
+      tabPanel(
+        title = "Renting"
+      ),
+      
+      #### Rentals panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
-        ### Rentals panel ----
         tabPanel(
           title = "Rentals"
         )
       },
       
+      #### Users panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
-        #### Users panel ----
         tabPanel(
           title = "Users"
         )
       },
       
+      #### Librarians panel ----
       if (logged$role=="Administrator") {
-        #### Librarians panel ----
         tabPanel(
           title = "Librarians"
         )
