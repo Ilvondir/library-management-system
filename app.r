@@ -6,15 +6,18 @@ library(shinythemes)
 library(DT)
 library(shinyWidgets)
 
-# Data initialization ----
-accounts <- readRDS("datasets/accounts.rds")
-books <- readRDS("datasets/books.rds")
-
 # UI ----
 ui <- uiOutput("page")
 
 # Server ----
 server <- function(input, output, session) {
+  
+  ## Data initialization ----
+  accounts <- reactiveFileReader(1000, session, "datasets/accounts.rds", readRDS)
+  
+  books <- reactive({
+    readRDS("datasets/books.rds")
+  })
 
   ## Functions ----
   ### Login function ----
@@ -30,7 +33,7 @@ server <- function(input, output, session) {
       html("result", "Enter all information")
     } else {
       
-      id <- accounts %>%
+      id <- accounts() %>%
         filter(login==Login) %>%
         select(ID)
       
@@ -42,7 +45,7 @@ server <- function(input, output, session) {
         html("result", "User not found")
       } else {
         
-        pass <- accounts %>%
+        pass <- accounts() %>%
           filter(ID==id) %>%
           select(Password)
         
@@ -54,7 +57,7 @@ server <- function(input, output, session) {
           html("result", "Wrong password entered")
         } else {
           
-          role <- accounts %>%
+          role <- accounts() %>%
             filter(ID==id) %>%
             select(Role)
           role <- role$Role[1]
@@ -101,12 +104,49 @@ server <- function(input, output, session) {
   })
   
   ### Books data table----
-  output$table <- renderDT({
-    datatable(books,
+  output$booksTable <- renderDT({
+    datatable(books(),
               options = list(scrollY="400px"),
               rownames=F,
-              selection="single")
-              
+              selection="single",
+              style= "bootstrap")
+  })
+  
+  ### Librarians table ----
+  output$librariansTable <- renderDT({
+    tempUsers <- accounts() %>%
+      filter(Role=="Librarian")
+    
+    datatable(tempUsers,
+              options = list(scrollY="170px"),
+              rownames=F,
+              selection="single",
+              style= "bootstrap")
+  })
+  
+  ### Librarians adding ----
+  observeEvent(input$addLibrarian, {
+    id <- max(accounts()$ID)+1
+    login <- input$libLogin
+    password <- input$libPassword
+    role <- "Librarian"
+    
+    if (login=="" | password=="") {
+      html("result", "Enter all information")
+    } else {
+      
+      if (login %in% accounts()$Login) {
+        html("result", "This username is taken")
+      } else {
+        df <- data.frame(ID=id, Login=login, Password=password, Role=role)
+        
+        newDF <- rbind(accounts(), df)
+        
+        saveRDS(newDF, "datasets/accounts.rds")
+        
+        
+      }
+    }
   })
   
   ## Pages ----
@@ -126,31 +166,34 @@ server <- function(input, output, session) {
       #### Catalog panel ----
       tabPanel(
         title = "Catalog",
-        dataTableOutput("table")
+        dataTableOutput("booksTable")
       ),
       
+      ### Renting panel ----
       tabPanel(
         title = "Renting"
       ),
       
-      #### Rentals panel ----
+      ### Rentals panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Rentals"
         )
       },
       
-      #### Users panel ----
+      ### Users panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Users"
         )
       },
       
-      #### Librarians panel ----
+      ### Librarians panel ----
       if (logged$role=="Administrator") {
         tabPanel(
-          title = "Librarians"
+          title = "Librarians",
+          uiOutput("librariansPanel"),
+          dataTableOutput("librariansTable")
         )
       },
       
@@ -158,7 +201,12 @@ server <- function(input, output, session) {
     )
   })
   
-  ### Starting UI setting ----
+  # UI segments ----
+  output$librariansPanel <- renderUI({
+    includeHTML("www/librariansPanel.html")
+  })
+  
+  # Starting UI setting ----
   output$page <- renderUI(loginPanel)
 }
 
