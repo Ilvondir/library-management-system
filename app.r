@@ -101,12 +101,24 @@ server <- function(input, output, session) {
   })
   
   ### Books data table----
-  output$table <- renderDT({
+  output$booksTable <- renderDT({
     datatable(books,
               options = list(scrollY="400px"),
               rownames=F,
-              selection="single")
-              
+              selection="single",
+              style= "bootstrap")
+  })
+  
+  ### Librarians table ----
+  output$librariansTable <- renderDT({
+    tempUsers <- accounts %>%
+      filter(Role=="Librarian")
+    
+    datatable(tempUsers,
+              options = list(scrollY="300px"),
+              rownames=F,
+              selection="single",
+              style= "bootstrap")
   })
   
   ## Pages ----
@@ -126,31 +138,33 @@ server <- function(input, output, session) {
       #### Catalog panel ----
       tabPanel(
         title = "Catalog",
-        dataTableOutput("table")
+        dataTableOutput("booksTable")
       ),
       
+      ### Renting panel ----
       tabPanel(
         title = "Renting"
       ),
       
-      #### Rentals panel ----
+      ### Rentals panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Rentals"
         )
       },
       
-      #### Users panel ----
+      ### Users panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Users"
         )
       },
       
-      #### Librarians panel ----
+      ### Librarians panel ----
       if (logged$role=="Administrator") {
         tabPanel(
-          title = "Librarians"
+          title = "Librarians",
+          dataTableOutput("librariansTable")
         )
       },
       
@@ -158,7 +172,7 @@ server <- function(input, output, session) {
     )
   })
   
-  ### Starting UI setting ----
+  ## Starting UI setting ----
   output$page <- renderUI(loginPanel)
 }
 
