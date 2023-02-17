@@ -6,15 +6,18 @@ library(shinythemes)
 library(DT)
 library(shinyWidgets)
 
-# Data initialization ----
-accounts <- readRDS("datasets/accounts.rds")
-books <- readRDS("datasets/books.rds")
-
 # UI ----
 ui <- uiOutput("page")
 
 # Server ----
 server <- function(input, output, session) {
+  
+  ## Data initialization ----
+  accounts <- reactiveFileReader(1000, session, "datasets/accounts.rds", readRDS)
+  
+  books <- reactive({
+    readRDS("datasets/books.rds")
+  })
 
   ## Functions ----
   ### Login function ----
@@ -30,7 +33,7 @@ server <- function(input, output, session) {
       html("result", "Enter all information")
     } else {
       
-      id <- accounts %>%
+      id <- accounts() %>%
         filter(login==Login) %>%
         select(ID)
       
@@ -42,7 +45,7 @@ server <- function(input, output, session) {
         html("result", "User not found")
       } else {
         
-        pass <- accounts %>%
+        pass <- accounts() %>%
           filter(ID==id) %>%
           select(Password)
         
@@ -54,7 +57,7 @@ server <- function(input, output, session) {
           html("result", "Wrong password entered")
         } else {
           
-          role <- accounts %>%
+          role <- accounts() %>%
             filter(ID==id) %>%
             select(Role)
           role <- role$Role[1]
@@ -102,7 +105,7 @@ server <- function(input, output, session) {
   
   ### Books data table----
   output$booksTable <- renderDT({
-    datatable(books,
+    datatable(books(),
               options = list(scrollY="400px"),
               rownames=F,
               selection="single",
@@ -111,7 +114,7 @@ server <- function(input, output, session) {
   
   ### Librarians table ----
   output$librariansTable <- renderDT({
-    tempUsers <- accounts %>%
+    tempUsers <- accounts() %>%
       filter(Role=="Librarian")
     
     datatable(tempUsers,
@@ -123,7 +126,7 @@ server <- function(input, output, session) {
   
   ### Librarians adding ----
   observeEvent(input$addLibrarian, {
-    id <- max(accounts$ID)+1
+    id <- max(accounts()$ID)+1
     login <- input$libLogin
     password <- input$libPassword
     role <- "Librarian"
@@ -132,12 +135,17 @@ server <- function(input, output, session) {
       html("result", "Enter all information")
     } else {
       
-      if (login %in% accounts$Login) {
+      if (login %in% accounts()$Login) {
         html("result", "This username is taken")
+      } else {
+        df <- data.frame(ID=id, Login=login, Password=password, Role=role)
+        
+        newDF <- rbind(accounts(), df)
+        
+        saveRDS(newDF, "datasets/accounts.rds")
+        
+        
       }
-      df <- data.frame(ID=id, Login=login, Password=password, Role=role)
-      
-      observe( print(df) )
     }
   })
   
