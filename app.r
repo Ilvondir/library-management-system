@@ -115,10 +115,30 @@ server <- function(input, output, session) {
       filter(Role=="Librarian")
     
     datatable(tempUsers,
-              options = list(scrollY="300px"),
+              options = list(scrollY="170px"),
               rownames=F,
               selection="single",
               style= "bootstrap")
+  })
+  
+  ### Librarians adding ----
+  observeEvent(input$addLibrarian, {
+    id <- max(accounts$ID)+1
+    login <- input$libLogin
+    password <- input$libPassword
+    role <- "Librarian"
+    
+    if (login=="" | password=="") {
+      html("result", "Enter all information")
+    } else {
+      
+      if (login %in% accounts$Login) {
+        html("result", "This username is taken")
+      }
+      df <- data.frame(ID=id, Login=login, Password=password, Role=role)
+      
+      observe( print(df) )
+    }
   })
   
   ## Pages ----
@@ -164,6 +184,7 @@ server <- function(input, output, session) {
       if (logged$role=="Administrator") {
         tabPanel(
           title = "Librarians",
+          uiOutput("librariansPanel"),
           dataTableOutput("librariansTable")
         )
       },
@@ -172,7 +193,12 @@ server <- function(input, output, session) {
     )
   })
   
-  ## Starting UI setting ----
+  # UI segments ----
+  output$librariansPanel <- renderUI({
+    includeHTML("www/librariansPanel.html")
+  })
+  
+  # Starting UI setting ----
   output$page <- renderUI(loginPanel)
 }
 
