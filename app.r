@@ -112,6 +112,41 @@ server <- function(input, output, session) {
               style= "bootstrap")
   })
   
+  ### User table ----
+  output$usersTable <- renderDT({
+    tempUsers <- accounts() %>%
+      filter(Role=="User")
+    
+    datatable(tempUsers,
+              options = list(scrollY="170px"),
+              rownames=F,
+              selection="single",
+              style= "bootstrap")
+  })
+  
+  ### Users adding ----
+  observeEvent(input$addUser, {
+    id <- max(accounts()$ID)+1
+    login <- input$useLogin
+    password <- input$usePassword
+    role <- "User"
+    
+    if (login=="" | password=="") {
+      html("result", "Enter all information")
+    } else {
+      
+      if (login %in% accounts()$Login) {
+        html("result", "This username is taken")
+      } else {
+        df <- data.frame(ID=id, Login=login, Password=password, Role=role)
+        
+        newDF <- rbind(accounts(), df)
+        
+        saveRDS(newDF, "datasets/accounts.rds")
+      }
+    }
+  })
+  
   ### Librarians table ----
   output$librariansTable <- renderDT({
     tempUsers <- accounts() %>%
@@ -143,8 +178,6 @@ server <- function(input, output, session) {
         newDF <- rbind(accounts(), df)
         
         saveRDS(newDF, "datasets/accounts.rds")
-        
-        
       }
     }
   })
@@ -184,7 +217,9 @@ server <- function(input, output, session) {
       ### Users panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
-          title = "Users"
+          title = "Users",
+          uiOutput("usersPanel"),
+          dataTableOutput("usersTable")
         )
       },
       
@@ -202,8 +237,14 @@ server <- function(input, output, session) {
   })
   
   # UI segments ----
+  ### Librarians HTML panel ----
   output$librariansPanel <- renderUI({
     includeHTML("www/librariansPanel.html")
+  })
+  
+  ### Users HTML panel ----
+  output$usersPanel <- renderUI({
+    includeHTML("www/usersPanel.html")
   })
   
   # Starting UI setting ----
