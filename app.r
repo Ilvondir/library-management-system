@@ -15,13 +15,15 @@ server <- function(input, output, session) {
   ## Data initialization ----
   accounts <- reactiveFileReader(1000, session, "datasets/accounts.rds", readRDS)
   
+  rentals <- reactiveFileReader(1000, session, "datasets/rentals.rds", readRDS)
+  
   books <- reactive({
     readRDS("datasets/books.rds")
   })
 
   ## Functions ----
   ### Login function ----
-  logged <- reactiveValues(role="")
+  logged <- reactiveValues(role="", login="")
   
   observeEvent(input$loginButton, {
     login <- input$login
@@ -67,6 +69,7 @@ server <- function(input, output, session) {
           html("result", "")
           
           observe( logged$role <- role )
+          observe( logged$login <- login )
           
           confirmSweetAlert(
             session = session,
@@ -99,6 +102,7 @@ server <- function(input, output, session) {
   observeEvent(input$confirm, {
     if (input$confirm) {
       observe( logged$role <- "" )
+      observe( logged$login <- "" )
       output$page <- renderUI(loginPanel)
     }
   })
@@ -107,6 +111,18 @@ server <- function(input, output, session) {
   output$booksTable <- renderDT({
     datatable(books(),
               options = list(scrollY="400px"),
+              rownames=F,
+              selection="single",
+              style= "bootstrap")
+  })
+  
+  ### Rentals table ----
+  output$rentalsTable <- renderDT({
+    rented <- rentals() %>%
+      filter(Renter==logged$login)
+    
+    datatable(rented,
+              options = list(scrollY="300px"),
               rownames=F,
               selection="single",
               style= "bootstrap")
@@ -206,7 +222,8 @@ server <- function(input, output, session) {
       tabPanel(
         title = "Renting",
         includeHTML("www/rentingPanel.html"),
-        uiOutput("select")
+        uiOutput("select"),
+        uiOutput("table")
       ),
       
       ### Rentals panel ----
@@ -248,14 +265,21 @@ server <- function(input, output, session) {
     div(
     selectInput(inputId = "toRent",
                 label = "Select books to rent:",
-                multiple = T,
                 choices = titles,
                 selected = ""
                 ),
     actionButton(inputId = "rentButton",
-                 label = "Rent this books",
+                 label = "Rent this book",
                  icon = icon("book"),
                  class = "btn btn-success")
+    )
+  })
+  
+  ### Table to renting books ----
+  output$table <- renderUI({
+    div(
+      h3("Your rentings:", style="margin: 0 0 20px 0"),
+      dataTableOutput("rentalsTable")
     )
   })
   
