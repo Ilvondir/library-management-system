@@ -204,7 +204,8 @@ server <- function(input, output, session) {
       
       ### Renting panel ----
       tabPanel(
-        title = "Renting"
+        title = "Renting",
+        includeHTML("www/rentingPanel.html")
       ),
       
       ### Rentals panel ----
