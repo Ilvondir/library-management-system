@@ -205,7 +205,8 @@ server <- function(input, output, session) {
       ### Renting panel ----
       tabPanel(
         title = "Renting",
-        includeHTML("www/rentingPanel.html")
+        includeHTML("www/rentingPanel.html"),
+        uiOutput("select")
       ),
       
       ### Rentals panel ----
@@ -219,7 +220,7 @@ server <- function(input, output, session) {
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Users",
-          uiOutput("usersPanel"),
+          includeHTML("www/usersPanel.html"),
           dataTableOutput("usersTable")
         )
       },
@@ -228,7 +229,7 @@ server <- function(input, output, session) {
       if (logged$role=="Administrator") {
         tabPanel(
           title = "Librarians",
-          uiOutput("librariansPanel"),
+          includeHTML("www/librariansPanel.html"),
           dataTableOutput("librariansTable")
         )
       },
@@ -238,14 +239,24 @@ server <- function(input, output, session) {
   })
   
   # UI segments ----
-  ### Librarians HTML panel ----
-  output$librariansPanel <- renderUI({
-    includeHTML("www/librariansPanel.html")
-  })
-  
-  ### Users HTML panel ----
-  output$usersPanel <- renderUI({
-    includeHTML("www/usersPanel.html")
+  ### Select to renting books ----
+  output$select <- renderUI({
+    titles <- books() %>%
+      select(Title) %>%
+      unique()
+    
+    div(
+    selectInput(inputId = "toRent",
+                label = "Select books to rent:",
+                multiple = T,
+                choices = titles,
+                selected = ""
+                ),
+    actionButton(inputId = "rentButton",
+                 label = "Rent this books",
+                 icon = icon("book"),
+                 class = "btn btn-success")
+    )
   })
   
   # Starting UI setting ----
