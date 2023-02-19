@@ -109,19 +109,31 @@ server <- function(input, output, session) {
   
   ### Renting books ----
   observeEvent(input$rentButton, {
-    book <- input$toRent
-    id <- max(rentals()$ID)+1
-    status <- "Waiting for acceptance"
-    renter <- logged$login
-    
-    newRecord <- data.frame(ID=id,
-                            Renter=renter,
-                            Title=book,
-                            Status=status)
-    
-    df <- rbind(rentals(), newRecord)
-    saveRDS(df, "datasets/rentals.rds")
-    
+    confirmSweetAlert(
+      session = session,
+      inputId = "rentConfirm",
+      title = "Confirm your rental",
+      text = paste0('Are you sure you want to rent "', input$toRent, '"?'),
+      type = "confirm",
+      showCancelButton = F
+    )
+  })
+  
+  observeEvent(input$rentConfirm, {
+    if (input$rentConfirm) {
+      book <- input$toRent
+      id <- max(rentals()$ID)+1
+      status <- "Waiting for acceptance"
+      renter <- logged$login
+      
+      newRecord <- data.frame(ID=id,
+                              Renter=renter,
+                              Title=book,
+                              Status=status)
+      
+      df <- rbind(rentals(), newRecord)
+      saveRDS(df, "datasets/rentals.rds")
+    }
   })
   
   ### Users adding ----
@@ -155,11 +167,11 @@ server <- function(input, output, session) {
     role <- "Librarian"
     
     if (login=="" | password=="") {
-      html("result", "Enter all information")
+      html("libresult", "Enter all information")
     } else {
       
       if (login %in% accounts()$Login) {
-        html("result", "This username is taken")
+        html("libresult", "This username is taken")
       } else {
         df <- data.frame(ID=id, Login=login, Password=password, Role=role)
         
@@ -193,15 +205,15 @@ server <- function(input, output, session) {
       ### Renting panel ----
       tabPanel(
         title = "Renting",
-        includeHTML("www/rentingPanel.html"),
-        uiOutput("select"),
+        uiOutput("selectInp"),
         uiOutput("table")
       ),
       
       ### Rentals panel ----
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
-          title = "Rentals"
+          title = "Rentals",
+          dataTableOutput("rentalsTable")
         )
       },
       
@@ -229,21 +241,21 @@ server <- function(input, output, session) {
   
   # UI segments ----
   ### Select to renting books ----
-  output$select <- renderUI({
+  output$selectInp <- renderUI({
     titles <- books() %>%
       select(Title) %>%
       unique()
     
     div(
-    selectInput(inputId = "toRent",
-                label = "Select book to rent:",
-                choices = titles,
-                selected = "The Changeling"
-                ),
-    actionButton(inputId = "rentButton",
-                 label = "Rent this book",
-                 icon = icon("book"),
-                 class = "btn btn-success")
+      selectInput(inputId = "toRent",
+                  label = "Select book to rent:",
+                  choices = titles,
+                  selected = "The Changeling"
+                  ),
+      actionButton(inputId = "rentButton",
+                   label = "Rent this book",
+                   icon = icon("book"),
+                   class = "btn btn-success")
     )
   })
   
@@ -251,7 +263,7 @@ server <- function(input, output, session) {
   output$table <- renderUI({
     div(
       h3("Your rentings:", style="margin: 0 0 20px 0"),
-      dataTableOutput("rentalsTable")
+      dataTableOutput("rentingsTable")
     )
   })
   
@@ -270,7 +282,19 @@ server <- function(input, output, session) {
       filter(Role=="User")
     
     datatable(tempUsers,
-              options = list(scrollY="170px"),
+              options = list(scrollY="180px"),
+              rownames=F,
+              selection="single",
+              style= "bootstrap")
+  })
+
+  ### Rentings table ----
+  output$rentingsTable <- renderDT({
+    rented <- rentals() %>%
+      filter(Renter==logged$login)
+    
+    datatable(rented,
+              options = list(scrollY="190px"),
               rownames=F,
               selection="single",
               style= "bootstrap")
@@ -278,11 +302,8 @@ server <- function(input, output, session) {
   
   ### Rentals table ----
   output$rentalsTable <- renderDT({
-    rented <- rentals() %>%
-      filter(Renter==logged$login)
-    
-    datatable(rented,
-              options = list(scrollY="300px"),
+    datatable(rentals(),
+              options = list(scrollY="180px"),
               rownames=F,
               selection="single",
               style= "bootstrap")
