@@ -109,19 +109,31 @@ server <- function(input, output, session) {
   
   ### Renting books ----
   observeEvent(input$rentButton, {
-    book <- input$toRent
-    id <- max(rentals()$ID)+1
-    status <- "Waiting for acceptance"
-    renter <- logged$login
-    
-    newRecord <- data.frame(ID=id,
-                            Renter=renter,
-                            Title=book,
-                            Status=status)
-    
-    df <- rbind(rentals(), newRecord)
-    saveRDS(df, "datasets/rentals.rds")
-    
+    confirmSweetAlert(
+      session = session,
+      inputId = "rentConfirm",
+      title = "Confirm your rental",
+      text = paste0('Are you sure you want to rent "', input$toRent, '"?'),
+      type = "confirm",
+      showCancelButton = F
+    )
+  })
+  
+  observeEvent(input$rentConfirm, {
+    if (input$rentConfirm) {
+      book <- input$toRent
+      id <- max(rentals()$ID)+1
+      status <- "Waiting for acceptance"
+      renter <- logged$login
+      
+      newRecord <- data.frame(ID=id,
+                              Renter=renter,
+                              Title=book,
+                              Status=status)
+      
+      df <- rbind(rentals(), newRecord)
+      saveRDS(df, "datasets/rentals.rds")
+    }
   })
   
   ### Users adding ----
