@@ -137,8 +137,14 @@ server <- function(input, output, session) {
   })
   
   ### Confirming rentals ----
-  observeEvents(input$rentalsSet, {
+  observeEvent(input$rentalsSet, {
+    number <- input$rentalsNumber
+    status <- input$rentalsStatus
     
+    rents <- rentals() %>%
+      mutate( Status = ifelse(ID==number, status, Status) )
+    
+    saveRDS(rents, "datasets/rentals.rds")
   })
   
   ### Users adding ----
