@@ -136,6 +136,11 @@ server <- function(input, output, session) {
     }
   })
   
+  ### Confirming rentals ----
+  observeEvents(input$rentalsSet, {
+    
+  })
+  
   ### Users adding ----
   observeEvent(input$addUser, {
     id <- max(accounts()$ID)+1
@@ -213,6 +218,13 @@ server <- function(input, output, session) {
       if (logged$role=="Administrator" | logged$role=="Librarian") {
         tabPanel(
           title = "Rentals",
+          uiOutput("rentalsNumber"),
+          uiOutput("rentalsStatus"),
+          
+          actionButton(inputId = "rentalsSet",
+                       label = "Set",
+                       class = "btn btn-success"),
+          
           dataTableOutput("rentalsTable")
         )
       },
@@ -300,10 +312,31 @@ server <- function(input, output, session) {
               style= "bootstrap")
   })
   
+  ### Rentals number select ----
+  output$rentalsNumber <- renderUI({
+    numbers <- rentals() %>%
+      filter(Status!="Turned") %>%
+      select(ID) %>%
+      unique()
+    
+    selectInput(inputId="rentalsNumber",
+                label="Select number of operation",
+                choices=numbers,
+                selected=numbers[1])
+  })
+  
+  ### Rentals status select ----
+  output$rentalsStatus <- renderUI({
+    selectInput(inputId="rentalsStatus",
+                label="Select status to set",
+                choices=c("Rented", "Turned"),
+                selected="Rented")
+  })
+  
   ### Rentals table ----
   output$rentalsTable <- renderDT({
     datatable(rentals(),
-              options = list(scrollY="180px"),
+              options = list(scrollY="170px"),
               rownames=F,
               selection="single",
               style= "bootstrap")
