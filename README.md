@@ -21,7 +21,7 @@ For running this program you need:
 
 ## How to run
 
-1. Execute command `git clone https://github.com/Ilvondir/r-library-system`.
+1. Execute command `git clone https://github.com/Ilvondir/library-system`.
 2. Open `app.r` at R/RStudio.
 3. Install all missing packages.
 4. Run app in an external window using the button in the upper right corner of the workspace.
