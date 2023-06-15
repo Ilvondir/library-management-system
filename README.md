@@ -33,9 +33,6 @@ For running this program you need:
 | Librarian 	    | librarian 	|  librarian  |
 | Administrator 	| admin      	|  admin      |
 
-
-![useCaseDiagram](www/img/useCaseDiagram.png?raw=true)
-
 ## First Look
 
 ![firstlook](www/img/firstlook.png?raw=true)
